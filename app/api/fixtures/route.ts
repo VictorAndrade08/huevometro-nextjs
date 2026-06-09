@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { fetchOpenfootballFixtures } from '@/lib/api/openfootball';
 
+export const runtime = 'edge';
+
 /**
  * API Route que proxea openfootball desde el server.
  * Cache: 5 minutos (revalidate en lib/api/openfootball.ts via fetch options).
