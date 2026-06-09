@@ -8,6 +8,7 @@ const PODIUM = [
     tone:      'silver',
     height:    'h-44 md:h-56',
     Icon:      Medal,
+    main:      false,
   },
   {
     place:     '1°',
@@ -25,6 +26,7 @@ const PODIUM = [
     tone:      'bronze',
     height:    'h-36 md:h-44',
     Icon:      Award,
+    main:      false,
   },
 ] as const;
 

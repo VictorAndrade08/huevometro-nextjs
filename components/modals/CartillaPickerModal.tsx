@@ -105,7 +105,7 @@ export function CartillaPickerModal({ open, onClose, matches, onPick }: Cartilla
           )}
 
           {options.map(opt => {
-            const Icon = opt.isTri ? Star : opt.key === 'all' ? Share2 : Calendar;
+            const Icon = opt.isTri ? Star : Calendar;
             const disabled = opt.matches.length === 0;
             return (
               <button

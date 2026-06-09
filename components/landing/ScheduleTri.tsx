@@ -22,10 +22,10 @@ const TRI_MATCHES: TriMatchRow[] = [
 ];
 
 const BRACKET_STAGES = [
-  { emoji: '⚔️',   title: '16avos',            dates: '28 Jun — 3 Jul' },
-  { emoji: '🗡️',   title: 'Octavos',           dates: '4 — 7 Jul' },
-  { emoji: '💪',   title: 'Cuartos · Semis',   dates: '9 — 15 Jul' },
-  { emoji: '🏆',   title: 'Gran Final',        dates: '19 Jul · MetLife', highlight: true },
+  { emoji: '⚔️',   title: '16avos',            dates: '28 Jun — 3 Jul',     highlight: false },
+  { emoji: '🗡️',   title: 'Octavos',           dates: '4 — 7 Jul',          highlight: false },
+  { emoji: '💪',   title: 'Cuartos · Semis',   dates: '9 — 15 Jul',         highlight: false },
+  { emoji: '🏆',   title: 'Gran Final',        dates: '19 Jul · MetLife',   highlight: true  },
 ] as const;
 
 export function ScheduleTri() {
