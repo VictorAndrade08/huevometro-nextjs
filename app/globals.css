@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+@theme {
+  /* === Bio Huevos brand orange (matches packaging) === */
+  --color-bio-50:  #FFF3E2;
+  --color-bio-100: #FFE0B5;
+  --color-bio-200: #FFC684;
+  --color-bio-300: #FFA851;
+  --color-bio-400: #FB9230;
+  --color-bio-500: #F08925;   /* naranja primario */
+  --color-bio-600: #D17418;
+  --color-bio-700: #A85912;
+  --color-bio-800: #7B400B;
+  --color-bio-900: #4E2706;
+
+  --color-cream:   #FBF7EE;
+  --color-ink:     #F4E4CC;
+
+  /* === Field-green casino-style palette === */
+  --color-bg-0:    #0A1A12;
+  --color-bg-1:    #0E1F16;
+  --color-bg-2:    #14281C;
+  --color-bg-3:    #1D3826;
+  --color-border:  rgba(255,224,181,0.10);
+  --color-border-soft: rgba(255,224,181,0.05);
+
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-display: 'Fredoka', 'Inter', sans-serif;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background-color: #0A1A12;
+    position: relative;
+    /* Capa visible siempre: rayas de césped + viñeta */
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% 35%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%),
+      repeating-linear-gradient(
+        180deg,
+        rgba(34, 96, 50, 0.55) 0px,
+        rgba(34, 96, 50, 0.55) 90px,
+        rgba(18, 64, 32, 0.55) 90px,
+        rgba(18, 64, 32, 0.55) 180px
+      );
+    background-attachment: fixed;
+    background-size: cover, auto;
+  }
+  /* Sobreposición real de la cancha (foto, con baja opacidad para no robar contraste) */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image: url('https://images.unsplash.com/photo-1486286701208-1d58e9338013?auto=format&fit=crop&w=1920&q=70');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.22;
+    mix-blend-mode: luminosity;
+  }
+  /* Líneas blancas decorativas tipo media cancha */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+      linear-gradient(to right, transparent 49.7%, rgba(255,255,255,0.05) 49.7%, rgba(255,255,255,0.05) 50.3%, transparent 50.3%);
+  }
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+}
+
+@layer utilities {
+  .bg-cream { background-color: var(--color-cream); }
+
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Egg pip — un gol = un huevo. Usado en el contador de goles del MatchCard. */
+  .egg-pip {
+    display: inline-block;
+    background: linear-gradient(180deg, #FBF5EA 0%, #F4E4CC 45%, #E8C896 100%);
+    border-radius: 50% 50% 48% 48% / 60% 60% 40% 40%;
+    box-shadow:
+      inset -2px -3px 5px rgba(120,72,20,0.28),
+      inset 2px 2px 3px rgba(255,255,255,0.5),
+      0 1px 2px rgba(0,0,0,0.35);
+    border: 1px solid rgba(120,72,20,0.45);
+    flex-shrink: 0;
+  }
+  .egg-pip-empty {
+    background: transparent;
+    border: 1.5px dashed rgba(255,224,181,0.22);
+    box-shadow: none;
+  }
+  .egg-pip-glow {
+    background: linear-gradient(180deg, #FFE48A 0%, #FFB458 50%, #F08925 100%);
+    border-color: #A85912;
+    box-shadow:
+      inset -2px -3px 5px rgba(78,39,6,0.45),
+      inset 2px 2px 3px rgba(255,255,255,0.55),
+      0 0 8px rgba(255,180,88,0.45),
+      0 1px 2px rgba(0,0,0,0.4);
+  }
+}
+
+/* Animaciones */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.6s ease-out both; }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 30px rgba(240,137,37,0.25), 0 10px 30px rgba(240,137,37,0.15); }
+  50%      { box-shadow: 0 0 50px rgba(240,137,37,0.45), 0 15px 40px rgba(240,137,37,0.25); }
+}
+.pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+/* Botón principal */
+.btn-bio {
+  background: linear-gradient(180deg, #FB9230 0%, #F08925 100%);
+  color: #fff;
+  border-bottom: 4px solid #A85912;
+  box-shadow: 0 10px 25px -5px rgba(240,137,37,0.5);
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.btn-bio:hover { background: linear-gradient(180deg, #F08925 0%, #D17418 100%); }
+.btn-bio:active { transform: translateY(2px); border-bottom-width: 2px; }
+
+/* Quick picks — dark version */
+.quick-pick {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  min-width: 56px; min-height: 42px;
+  padding: 6px 12px;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-3);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 17px; letter-spacing: 0.02em;
+  color: var(--color-bio-200); font-weight: 700;
+  cursor: pointer;
+  transition: all .15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+.quick-pick:hover, .quick-pick:focus { border-color: var(--color-bio-500); color: var(--color-bio-100); }
+.quick-pick:active { transform: scale(0.92); }
+.quick-pick.selected {
+  background: linear-gradient(180deg, #FB9230 0%, #F08925 100%);
+  color: #fff;
+  border-color: #A85912;
+  box-shadow: 0 4px 10px rgba(240,137,37,0.35);
+}
+.quick-pick-random { font-size: 16px; padding: 4px 10px; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.75);
+  z-index: 200; display: none; align-items: center; justify-content: center;
+  padding: 16px; backdrop-filter: blur(6px);
+}
+.modal-overlay.show { display: flex; animation: fade-in .25s ease; }
+@keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
+.modal-box {
+  background: var(--color-bg-2);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  border-radius: 24px; max-width: 480px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 30px 80px -10px rgba(0,0,0,.7);
+}
+
+/* Toast */
+.toast {
+  position: fixed; top: 90px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  background: #16A34A; color: white; padding: 12px 24px; border-radius: 16px;
+  font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.3); z-index: 100;
+  opacity: 0; pointer-events: none; transition: all .3s ease;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; width: 10px; height: 10px;
+  pointer-events: none; z-index: 9999; top: -10px;
+  animation: confetti-fall 2.5s ease-out forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(-100vh) rotate(0deg); opacity: 1 }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0 }
+}
+
+@keyframes live-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+  70%  { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #EF4444; box-shadow: 0 0 0 0 rgba(239,68,68,0.7);
+  animation: live-pulse 1.5s infinite;
+}
