@@ -148,8 +148,9 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
   }
 
   // SIEMPRE Instagram Stories 9:16 (1080×1920 al exportar).
-  // Las medidas internas se calculan para que TODO entre — grid con minmax(0,1fr)
-  // garantiza que las filas se compriman antes de desbordar.
+  // Las medidas internas se calculan para que TODO entre. Usamos flex con
+  // max-height por fila para que con 1-2 partidos la fila no se infle a
+  // toda la altura disponible.
   const rowCount = matches.length;
   const aspectRatio = '9 / 16';
   // Factor de escala interna basado en la cantidad de partidos (sin ir por debajo
@@ -168,6 +169,9 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
   const scoreMinW   = Math.max(40, Math.round(60 * factor));
   const teamGap     = Math.max(2,  Math.round(4  * factor));
   const cellGap     = Math.max(4,  Math.round(8  * factor));
+  // Cap por fila — para que 1 partido NO ocupe los 1500px disponibles.
+  // 1 → ~190 (alto, holgado)   8 → ~125   16 → ~60
+  const rowMaxH     = Math.round(60 + (1 - Math.min(rowCount, 16) / 16) * 140);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -314,13 +318,15 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
             </h2>
           </div>
 
-          {/* Lista de partidos — grid de filas iguales que NUNCA se desbordan */}
+          {/* Lista de partidos — flex con cap por fila para que 1 partido
+              no se infle al alto completo, pero 16 partidos quepan */}
           <div style={{
             flex: 1,
             minHeight: 0,
             padding: `${rowGap * 2}px ${horizPad}px`,
-            display: 'grid',
-            gridTemplateRows: `repeat(${matches.length}, minmax(0, 1fr))`,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
             gap: rowGap,
             overflow: 'hidden',
           }}>
@@ -340,7 +346,9 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                     border: '1.5px solid #FFE0B5',
                     borderRadius: 14,
                     padding: `${rowPadV}px ${rowPadH}px`,
+                    flex: '1 1 0',
                     minHeight: 0,
+                    maxHeight: rowMaxH,
                     overflow: 'hidden',
                   }}
                 >
