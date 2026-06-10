@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { useGameStore } from '@/store/gameStore';
 import { WEEK_BUCKETS, getWeekFor } from '@/lib/weeks';
 import { isLocked } from '@/lib/scoring';
@@ -82,7 +82,7 @@ export function MatchesList({ matches, onShareMatch, onShareGroup }: MatchesList
           style={{ background: 'var(--color-bg-2)', borderColor: 'var(--color-border)' }}
         >
           <div className="mx-auto w-16 h-16 rounded-full bg-bio-500/15 flex items-center justify-center mb-3">
-            <Sparkles className="size-8 text-bio-300" strokeWidth={2.5} />
+            <Trophy className="size-8 text-bio-300" strokeWidth={2.5} />
           </div>
           <p className="font-display font-bold text-bio-200 text-lg">
             {hiddenCount} partidos de eliminatorias por definir
