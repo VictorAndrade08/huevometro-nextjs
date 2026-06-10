@@ -11,7 +11,7 @@ export function DashboardHeader({ }: DashboardHeaderProps = {}) {
 
   return (
     <header
-      className="sticky top-0 z-40 border-b backdrop-blur-md"
+      className="border-b"
       style={{
         background: 'rgba(14,10,6,0.85)',
         borderColor: 'var(--color-border)',

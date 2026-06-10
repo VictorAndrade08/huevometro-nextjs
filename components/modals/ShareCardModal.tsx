@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { Download, Instagram, MessageCircle, Copy, User, Pencil } from 'lucide-react';
+import { Download, Share2, User, Pencil } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
@@ -49,44 +49,82 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
 
   if (!matches || matches.length === 0) return null;
 
-  async function downloadPNG() {
+  function buildFilename() {
+    const slugify = (s: string) => s.toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const safeName = slugify(userProfile.name || 'huevometro');
+    const slug     = slugify(title);
+    return `huevometro-${safeName}-${slug}.png`;
+  }
+
+  async function renderCanvas() {
+    const html2canvas = (await import('html2canvas')).default;
+    if (!cardRef.current) return null;
+    return html2canvas(cardRef.current, {
+      backgroundColor: null, scale: 2, useCORS: true,
+    });
+  }
+
+  async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
+    return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png', 0.95));
+  }
+
+  // Botón principal — usa Web Share API si está disponible y soporta archivos
+  async function handleNativeShare() {
     if (!matches) return;
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      if (!cardRef.current) return;
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null, scale: 2, useCORS: true,
-      });
-      const safeName = (userProfile.name || 'huevometro').toLowerCase()
-        .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-      const slug = title.toLowerCase()
-        .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const canvas = await renderCanvas();
+      if (!canvas) throw new Error('canvas null');
+      const blob = await canvasToBlob(canvas);
+      if (!blob) throw new Error('blob null');
+
+      const file = new File([blob], buildFilename(), { type: 'image/png' });
+      const text = `Mi cartilla del Huevómetro: ${title} · @biohuevos_ec`;
+
+      const canShareFile = typeof navigator !== 'undefined' &&
+        !!navigator.canShare && navigator.canShare({ files: [file] });
+
+      if (canShareFile && navigator.share) {
+        try {
+          await navigator.share({ files: [file], text, title: 'Mi cartilla del Huevómetro' });
+          incrementShared();
+          onShared('¡Listo! Recordá etiquetar @biohuevos_ec');
+          return;
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') return;
+          // si falla por otro motivo caemos al fallback
+        }
+      }
+
+      // Fallback: descarga la imagen
       const link = document.createElement('a');
-      link.download = `huevometro-${safeName}-${slug}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.download = file.name;
+      link.href = URL.createObjectURL(blob);
       link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
       incrementShared();
-      onShared('Cartilla descargada — subila a tu historia y etiquetá @biohuevos_ec');
+      onShared('Imagen descargada — subila a tu historia y etiquetá @biohuevos_ec');
     } catch (e) {
       console.error(e);
       onShared('No se pudo generar la imagen', 'warn');
     }
   }
 
-  function shareTo(platform: 'whatsapp' | 'instagram' | 'copy') {
-    const text = `Mi cartilla del Huevómetro: ${title} · #HuevómetroMundialista @biohuevos_ec`;
-    const url  = typeof window !== 'undefined' ? window.location.origin : '';
-    const enc  = encodeURIComponent;
-    if (platform === 'whatsapp') {
-      window.open(`https://wa.me/?text=${enc(text + ' ' + url)}`, '_blank', 'noopener');
+  // Botón secundario — siempre descarga
+  async function handleDownload() {
+    try {
+      const canvas = await renderCanvas();
+      if (!canvas) throw new Error('canvas null');
+      const link = document.createElement('a');
+      link.download = buildFilename();
+      link.href = canvas.toDataURL('image/png');
+      link.click();
       incrementShared();
-    } else if (platform === 'instagram') {
-      downloadPNG();
-      setTimeout(() => onShared('Subila como historia y etiquetá @biohuevos_ec'), 800);
-    } else if (platform === 'copy') {
-      navigator.clipboard?.writeText(text + '\n' + url).then(() => onShared('Texto copiado'));
+      onShared('Imagen descargada');
+    } catch (e) {
+      console.error(e);
+      onShared('No se pudo generar la imagen', 'warn');
     }
   }
 
@@ -245,84 +283,84 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
               const p = predictions[m.id];
               const h = typeof p?.home === 'number' ? p.home : 0;
               const a = typeof p?.away === 'number' ? p.away : 0;
+              const teamFont = compact ? 10 : 12;
+              const flagW    = compact ? 28 : 36;
+              const flagH    = compact ? 20 : 26;
               return (
                 <div
                   key={m.id}
                   style={{
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto 1fr',
                     alignItems: 'center',
+                    gap: compact ? 6 : 10,
                     background: '#fff',
                     border: '1.5px solid #FFE0B5',
-                    borderRadius: 12,
-                    padding: compact ? '8px 10px' : '10px 12px',
-                    minWidth: 0,
+                    borderRadius: 14,
+                    padding: compact ? '10px 8px' : '12px 10px',
                   }}
                 >
-                  {/* Local */}
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
-                    <span style={{
-                      flex: 1,
-                      fontSize: compact ? 10 : 12,
-                      fontWeight: 700,
-                      color: '#2A1F12',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.02em',
-                      textAlign: 'right',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      minWidth: 0,
-                    }}>
-                      {m.homeTeam}
-                    </span>
+                  {/* Local — flag arriba, nombre abajo */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
                     {flagUrl(m.homeFlag, 80) && (
                       <img
                         src={flagUrl(m.homeFlag, 80)}
                         alt={m.homeTeam}
                         crossOrigin="anonymous"
-                        style={{ width: compact ? 20 : 26, height: compact ? 14 : 18, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }}
+                        style={{ width: flagW, height: flagH, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
                       />
                     )}
+                    <span style={{
+                      width: '100%',
+                      fontSize: teamFont,
+                      fontWeight: 700,
+                      color: '#2A1F12',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.01em',
+                      textAlign: 'center',
+                      lineHeight: 1.15,
+                      wordBreak: 'break-word',
+                    }}>
+                      {m.homeTeam}
+                    </span>
                   </div>
-                  {/* Score */}
+                  {/* Score — centro */}
                   <div style={{
                     flexShrink: 0,
                     fontFamily: 'var(--font-display)',
-                    fontSize: compact ? 16 : 22,
+                    fontSize: compact ? 18 : 24,
                     fontWeight: 700,
                     color: '#A85912',
                     background: '#FFF3E2',
-                    borderRadius: 10,
-                    padding: '4px 12px',
+                    borderRadius: 12,
+                    padding: '6px 14px',
                     minWidth: 64,
                     textAlign: 'center',
                     lineHeight: 1,
                     border: '1.5px solid #FFC684',
-                    margin: '0 8px',
                   }}>
                     {h}–{a}
                   </div>
-                  {/* Visitante */}
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-start', minWidth: 0 }}>
+                  {/* Visitante — flag arriba, nombre abajo */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
                     {flagUrl(m.awayFlag, 80) && (
                       <img
                         src={flagUrl(m.awayFlag, 80)}
                         alt={m.awayTeam}
                         crossOrigin="anonymous"
-                        style={{ width: compact ? 20 : 26, height: compact ? 14 : 18, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }}
+                        style={{ width: flagW, height: flagH, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
                       />
                     )}
                     <span style={{
-                      flex: 1,
-                      fontSize: compact ? 10 : 12,
+                      width: '100%',
+                      fontSize: teamFont,
                       fontWeight: 700,
                       color: '#2A1F12',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.02em',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      minWidth: 0,
+                      letterSpacing: '0.01em',
+                      textAlign: 'center',
+                      lineHeight: 1.15,
+                      wordBreak: 'break-word',
                     }}>
                       {m.awayTeam}
                     </span>
@@ -374,22 +412,19 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
 
         {/* Acciones */}
         <div className="mt-4 space-y-2">
-          <Button onClick={downloadPNG} size="md" block>
-            <Download className="size-4" /> Descargar imagen
+          <Button onClick={handleNativeShare} size="lg" block>
+            <Share2 className="size-5" /> Compartir cartilla
           </Button>
-          <div className="grid grid-cols-3 gap-2">
-            <ShareBtn onClick={() => shareTo('whatsapp')}  className="bg-green-500 hover:bg-green-600">
-              <MessageCircle className="size-5" /> WhatsApp
-            </ShareBtn>
-            <ShareBtn onClick={() => shareTo('instagram')} className="bg-gradient-to-tr from-pink-500 to-purple-600">
-              <Instagram className="size-5" /> Historia
-            </ShareBtn>
-            <ShareBtn onClick={() => shareTo('copy')}      className="bg-bio-500 hover:bg-bio-600">
-              <Copy className="size-5" /> Copiar
-            </ShareBtn>
-          </div>
-          <p className="text-[11px] text-bio-200/55 text-center mt-2 leading-relaxed">
-            Subila a Instagram y etiquetá a <strong className="text-bio-300">@biohuevos_ec</strong> para participar.
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl border-2 text-bio-200 hover:text-white hover:border-bio-400 transition font-display font-semibold text-sm"
+            style={{ background: 'var(--color-bg-3)', borderColor: 'var(--color-border)' }}
+          >
+            <Download className="size-4" /> Solo descargar imagen
+          </button>
+          <p className="text-xs text-bio-200/65 text-center mt-2 leading-relaxed">
+            Subila a tu historia y etiquetá <strong className="text-bio-300">@biohuevos_ec</strong> para participar.
           </p>
         </div>
       </div>
@@ -397,13 +432,3 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
   );
 }
 
-function ShareBtn({ onClick, className, children }: { onClick: () => void; className: string; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`text-white font-display font-semibold py-2.5 rounded-xl text-xs flex flex-col items-center gap-1 transition ${className}`}
-    >
-      {children}
-    </button>
-  );
-}

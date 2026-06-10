@@ -47,18 +47,28 @@ export default function DashboardPage() {
   const updateStats       = useGameStore(s => s.updateStats);
   const unlockAchievement = useGameStore(s => s.unlockAchievement);
 
-  // Compartir un solo partido — pide datos antes
+  // Si el perfil ya está completo, saltamos el ProfileCaptureModal
+  const profileReady = !!(userProfile.name?.trim() && userProfile.ig?.trim());
+
+  function openShareFlow(picked: Match[], label: string) {
+    setShareMatches(picked);
+    setShareTitle(label);
+    if (profileReady) {
+      persistStats();
+      setShareOpen(true);
+    } else {
+      setProfileOpen(true);
+    }
+  }
+
+  // Compartir un solo partido
   function handleShareMatch(match: Match) {
-    setShareMatches([match]);
-    setShareTitle(`${match.homeTeam} vs ${match.awayTeam}`);
-    setProfileOpen(true);
+    openShareFlow([match], `${match.homeTeam} vs ${match.awayTeam}`);
   }
 
   // Compartir una jornada entera (o La Tri)
   function handleShareGroup(matches: Match[], label: string) {
-    setShareMatches(matches);
-    setShareTitle(label);
-    setProfileOpen(true);
+    openShareFlow(matches, label);
   }
 
   function handleProfileComplete() {
@@ -103,9 +113,7 @@ export default function DashboardPage() {
 
   function handlePickerChoose(picked: Match[], label: string) {
     setPickerOpen(false);
-    setShareMatches(picked);
-    setShareTitle(label);
-    setProfileOpen(true);
+    openShareFlow(picked, label);
     launchConfetti();
   }
 
