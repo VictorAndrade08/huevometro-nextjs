@@ -147,31 +147,29 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
     }
   }
 
-  // SIEMPRE Instagram Stories 9:16 (1080×1920 al exportar).
-  // Las medidas internas se calculan para que TODO entre. Usamos flex con
-  // max-height por fila para que con 1-2 partidos la fila no se infle a
-  // toda la altura disponible.
+  // Aspect ratio dinámico — evita el "mar de espacio vacío" cuando hay pocos
+  // partidos. Todos los formatos son válidos para Instagram (1080×1350 feed,
+  // 1080×1440 retrato, 1080×1920 stories).
   const rowCount = matches.length;
-  const aspectRatio = '9 / 16';
+  const aspectRatio = rowCount <= 3 ? '4 / 5'         // 1080×1350 — feed
+                    : rowCount <= 7 ? '3 / 4'         // 1080×1440 — retrato
+                    :                 '9 / 16';       // 1080×1920 — stories
   // Factor de escala interna basado en la cantidad de partidos (sin ir por debajo
-  // de mínimos legibles). Calibrado para 1080×1920.
-  const factor      = Math.max(0.55, Math.min(1.25, 1.40 - rowCount * 0.07));
-  const teamFont    = Math.max(9,  Math.round(13 * factor));
-  const scoreFont   = Math.max(15, Math.round(26 * factor));
-  const flagW       = Math.max(20, Math.round(34 * factor));
-  const flagH       = Math.max(15, Math.round(24 * factor));
-  const rowPadV     = Math.max(4,  Math.round(9  * factor));
-  const rowPadH     = Math.max(6,  Math.round(10 * factor));
-  const rowGap      = Math.max(3,  Math.round(7  * factor));
-  const horizPad    = Math.max(10, Math.round(16 * factor));
-  const scorePadH   = Math.max(8,  Math.round(13 * factor));
-  const scorePadV   = Math.max(4,  Math.round(6  * factor));
-  const scoreMinW   = Math.max(40, Math.round(60 * factor));
-  const teamGap     = Math.max(2,  Math.round(4  * factor));
-  const cellGap     = Math.max(4,  Math.round(8  * factor));
-  // Cap por fila — para que 1 partido NO ocupe los 1500px disponibles.
-  // 1 → ~190 (alto, holgado)   8 → ~125   16 → ~60
-  const rowMaxH     = Math.round(60 + (1 - Math.min(rowCount, 16) / 16) * 140);
+  // de mínimos legibles).
+  const factor      = Math.max(0.55, Math.min(1.40, 1.55 - rowCount * 0.08));
+  const teamFont    = Math.max(10, Math.round(14 * factor));
+  const scoreFont   = Math.max(16, Math.round(28 * factor));
+  const flagW       = Math.max(22, Math.round(38 * factor));
+  const flagH       = Math.max(16, Math.round(26 * factor));
+  const rowPadV     = Math.max(6,  Math.round(11 * factor));
+  const rowPadH     = Math.max(8,  Math.round(12 * factor));
+  const rowGap      = Math.max(4,  Math.round(8  * factor));
+  const horizPad    = Math.max(12, Math.round(18 * factor));
+  const scorePadH   = Math.max(10, Math.round(14 * factor));
+  const scorePadV   = Math.max(5,  Math.round(7  * factor));
+  const scoreMinW   = Math.max(48, Math.round(66 * factor));
+  const teamGap     = Math.max(3,  Math.round(6  * factor));
+  const cellGap     = Math.max(6,  Math.round(10 * factor));
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -348,7 +346,6 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                     padding: `${rowPadV}px ${rowPadH}px`,
                     flex: '1 1 0',
                     minHeight: 0,
-                    maxHeight: rowMaxH,
                     overflow: 'hidden',
                   }}
                 >
@@ -370,9 +367,9 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                       textTransform: 'uppercase',
                       letterSpacing: '0.01em',
                       textAlign: 'center',
-                      lineHeight: 1.1,
+                      lineHeight: 1.2,
                       wordBreak: 'break-word',
-                      overflow: 'hidden',
+                      paddingBottom: 2,
                     }}>
                       {m.homeTeam}
                     </span>
@@ -412,9 +409,9 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                       textTransform: 'uppercase',
                       letterSpacing: '0.01em',
                       textAlign: 'center',
-                      lineHeight: 1.1,
+                      lineHeight: 1.2,
                       wordBreak: 'break-word',
-                      overflow: 'hidden',
+                      paddingBottom: 2,
                     }}>
                       {m.awayTeam}
                     </span>
