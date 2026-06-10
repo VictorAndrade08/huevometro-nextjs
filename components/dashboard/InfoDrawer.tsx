@@ -1,6 +1,8 @@
 'use client';
 
 import { ChevronDown, Info, Gift, Trophy, Calendar, Zap } from 'lucide-react';
+import { tapHaptic } from '@/lib/haptic';
+import { soundTap, soundToggle } from '@/lib/sounds';
 
 const PRIZES = [
   { Icon: Trophy,   title: 'Gran Premio',        desc: 'Para el campeón del torneo' },
@@ -18,7 +20,10 @@ export function InfoDrawer({ onOpenRules }: InfoDrawerProps) {
       className="group rounded-2xl shadow-sm overflow-hidden mt-6 border"
       style={{ background: 'var(--color-bg-2)', borderColor: 'var(--color-border)' }}
     >
-      <summary className="flex items-center justify-between p-5 cursor-pointer hover:brightness-110 transition list-none">
+      <summary
+        className="flex items-center justify-between p-5 cursor-pointer hover:brightness-110 transition list-none"
+        onClick={() => { tapHaptic(); soundToggle(); }}
+      >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-bio-500/15 flex items-center justify-center">
             <Info className="size-6 text-bio-300" strokeWidth={2.5} />
@@ -66,7 +71,7 @@ export function InfoDrawer({ onOpenRules }: InfoDrawerProps) {
         </div>
 
         <button
-          onClick={onOpenRules}
+          onClick={() => { tapHaptic(); soundTap(); onOpenRules(); }}
           className="w-full rounded-2xl p-4 text-base font-display font-bold text-white transition border-2 hover:brightness-125"
           style={{ background: 'var(--color-bg-3)', borderColor: 'var(--color-border)' }}
         >

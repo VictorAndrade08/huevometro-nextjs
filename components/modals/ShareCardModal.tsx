@@ -6,6 +6,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
 import { flagUrl } from '@/lib/teams';
+import { soundCelebrate, soundPick, soundTap } from '@/lib/sounds';
+import { tapHaptic } from '@/lib/haptic';
 import type { Match } from '@/types';
 
 interface ShareCardModalProps {
@@ -36,10 +38,14 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
       setDraftName(userProfile.name || '');
       setDraftIg(userProfile.ig || '');
       setEditing(false);
+      // Fanfare de felicitaciones al abrir la cartilla
+      soundCelebrate();
     }
   }, [open, userProfile.name, userProfile.ig]);
 
   function saveEdit() {
+    tapHaptic();
+    soundPick();
     setProfile({
       name: draftName.trim(),
       ig:   draftIg.trim().replace(/^@/, ''),
@@ -73,6 +79,8 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
   // Botón principal — usa Web Share API si está disponible y soporta archivos
   async function handleNativeShare() {
     if (!matches) return;
+    tapHaptic();
+    soundPick();
     try {
       const canvas = await renderCanvas();
       if (!canvas) throw new Error('canvas null');
@@ -113,6 +121,8 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
 
   // Botón secundario — siempre descarga
   async function handleDownload() {
+    tapHaptic();
+    soundTap();
     try {
       const canvas = await renderCanvas();
       if (!canvas) throw new Error('canvas null');

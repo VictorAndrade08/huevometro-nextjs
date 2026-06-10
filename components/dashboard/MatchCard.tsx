@@ -79,6 +79,12 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
     clearPrediction(match.id);
   }
 
+  function handleShareClick() {
+    tapHaptic();
+    soundPick();
+    onShare?.(match);
+  }
+
   return (
     <div
       className={cardClasses}
@@ -202,7 +208,7 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
           <button
             type="button"
             disabled={!hasPrediction || locked}
-            onClick={() => onShare(match)}
+            onClick={handleShareClick}
             className={cn(
               'inline-flex items-center justify-center gap-2 h-12 rounded-2xl font-display font-bold text-base transition border-2',
               hasPrediction && !locked

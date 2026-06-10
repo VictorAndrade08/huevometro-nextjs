@@ -78,3 +78,16 @@ export function soundComplete(): void {
   blip({ freq: 660,  duration: 0.10, type: 'triangle', volume: 0.18, sweep: 880 });
   setTimeout(() => blip({ freq: 880, duration: 0.16, type: 'triangle', volume: 0.20, sweep: 1320 }), 90);
 }
+
+/** Fanfare ascendente — para cuando se abre la cartilla / felicitación. */
+export function soundCelebrate(): void {
+  blip({ freq: 523, duration: 0.12, type: 'triangle', volume: 0.18 });                   // C5
+  setTimeout(() => blip({ freq: 659, duration: 0.12, type: 'triangle', volume: 0.19 }), 100); // E5
+  setTimeout(() => blip({ freq: 784, duration: 0.14, type: 'triangle', volume: 0.20 }), 200); // G5
+  setTimeout(() => blip({ freq: 1047, duration: 0.26, type: 'triangle', volume: 0.22, sweep: 1175 }), 320); // C6 → D6
+}
+
+/** Toggle/abrir suave para acordeones y modales. */
+export function soundToggle(): void {
+  blip({ freq: 420, duration: 0.08, type: 'sine', volume: 0.12, sweep: 560 });
+}

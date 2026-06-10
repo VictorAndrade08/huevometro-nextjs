@@ -3,6 +3,8 @@
 import { Goal, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/store/gameStore';
+import { tapHaptic } from '@/lib/haptic';
+import { soundTap } from '@/lib/sounds';
 import type { FilterType } from '@/types';
 
 const FILTERS: Array<{ id: FilterType; label: string; Icon: React.ComponentType<{ className?: string; strokeWidth?: number }> }> = [
@@ -28,7 +30,7 @@ export function FilterTabs({ totalPlayable, totalPredicted }: FilterTabsProps) {
           return (
             <button
               key={f.id}
-              onClick={() => setFilter(f.id)}
+              onClick={() => { tapHaptic(); soundTap(); setFilter(f.id); }}
               className={cn(
                 'shrink-0 inline-flex items-center gap-2 px-5 h-12 rounded-full font-display font-bold text-base transition border',
                 active

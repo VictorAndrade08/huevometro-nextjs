@@ -5,6 +5,8 @@ import { Star, Calendar, ChevronRight } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useGameStore } from '@/store/gameStore';
 import { WEEK_BUCKETS, getWeekFor, formatWeekRange } from '@/lib/weeks';
+import { tapHaptic } from '@/lib/haptic';
+import { soundPick } from '@/lib/sounds';
 import type { Match } from '@/types';
 
 interface CartillaOption {
@@ -71,6 +73,8 @@ export function CartillaPickerModal({ open, onClose, matches, onPick }: Cartilla
 
   function choose(opt: CartillaOption) {
     if (opt.matches.length === 0) return;
+    tapHaptic();
+    soundPick();
     onPick(opt.matches, opt.title);
   }
 

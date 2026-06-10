@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 import { useGameStore } from '@/store/gameStore';
 import { formatDayLabel, formatWeekRange, groupByDay } from '@/lib/weeks';
 import { isLocked } from '@/lib/scoring';
+import { tapHaptic } from '@/lib/haptic';
+import { soundComplete, soundPick, soundToggle } from '@/lib/sounds';
 import { MatchCard } from './MatchCard';
 import type { Match, WeekBucket } from '@/types';
 
@@ -23,6 +25,8 @@ export function WeekAccordion({ bucket, matches, doneCount, onShareMatch, onShar
   const applyQuickPick = useGameStore(s => s.applyQuickPick);
 
   function fillRandom() {
+    tapHaptic();
+    soundComplete();
     matches.forEach(m => {
       if (isLocked(m)) return;
       const p = predictions[m.id];
@@ -30,6 +34,18 @@ export function WeekAccordion({ bucket, matches, doneCount, onShareMatch, onShar
       if (has) return;
       applyQuickPick(m.id, Math.floor(Math.random() * 4), Math.floor(Math.random() * 4));
     });
+  }
+
+  function handleToggle() {
+    tapHaptic();
+    soundToggle();
+    toggleWeek(bucket.id);
+  }
+
+  function handleShareGroup() {
+    tapHaptic();
+    soundPick();
+    onShareGroup?.(matches, label);
   }
 
   if (matches.length === 0) return null;
@@ -47,7 +63,7 @@ export function WeekAccordion({ bucket, matches, doneCount, onShareMatch, onShar
     >
       <button
         className="w-full flex items-center justify-between gap-3 p-5 hover:brightness-125 transition"
-        onClick={() => toggleWeek(bucket.id)}
+        onClick={handleToggle}
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-4 text-left min-w-0">
@@ -109,7 +125,7 @@ export function WeekAccordion({ bucket, matches, doneCount, onShareMatch, onShar
               <button
                 type="button"
                 disabled={!allDone}
-                onClick={() => onShareGroup(matches, label)}
+                onClick={handleShareGroup}
                 className={cn(
                   'w-full inline-flex items-center justify-center gap-2.5 h-14 rounded-2xl font-display font-bold text-lg transition border-2',
                   allDone

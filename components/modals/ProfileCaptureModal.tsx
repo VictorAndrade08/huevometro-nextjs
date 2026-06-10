@@ -5,6 +5,8 @@ import { User, Instagram, Trophy } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
+import { tapHaptic } from '@/lib/haptic';
+import { soundPick } from '@/lib/sounds';
 
 interface ProfileCaptureModalProps {
   open:        boolean;
@@ -34,6 +36,8 @@ export function ProfileCaptureModal({ open, onClose, onComplete, picksCount }: P
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
+    tapHaptic();
+    soundPick();
     setProfile({
       name: name.trim(),
       ig:   ig.trim().replace(/^@/, ''),
