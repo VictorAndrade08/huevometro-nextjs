@@ -64,25 +64,28 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
     return `huevometro-${safeName}-${slug}.png`;
   }
 
-  // Renderiza a EXACTAMENTE 1080×1920 (Instagram Stories) sin importar
-  // el tamaño en el que se vea la preview. Calculamos `scale` a partir
-  // del width real del preview para que el canvas resultante tenga 1080px de ancho.
-  async function renderCanvas() {
-    const html2canvas = (await import('html2canvas')).default;
+  // Renderiza con html-to-image (mejor que html2canvas para CSS moderno —
+  // gradientes, flex, border-radius). Escala via CSS transform para que
+  // el output tenga exactamente 1080px de ancho, independientemente del
+  // tamaño visible de la preview.
+  async function renderBlob(): Promise<Blob | null> {
+    const { toBlob } = await import('html-to-image');
     if (!cardRef.current) return null;
-    const previewWidth = cardRef.current.getBoundingClientRect().width;
+    const el = cardRef.current;
+    const previewWidth = el.getBoundingClientRect().width;
     if (!previewWidth) return null;
-    const targetScale = 1080 / previewWidth;
-    return html2canvas(cardRef.current, {
-      backgroundColor: null,
-      scale: targetScale,
-      useCORS: true,
-      logging: false,
+    const scale = 1080 / previewWidth;
+    const previewHeight = el.getBoundingClientRect().height;
+    return toBlob(el, {
+      width: 1080,
+      height: Math.round(previewHeight * scale),
+      pixelRatio: 1,
+      cacheBust: true,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: 'top left',
+      },
     });
-  }
-
-  async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
-    return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png', 0.95));
   }
 
   // Botón principal — usa Web Share API si está disponible y soporta archivos
@@ -91,9 +94,7 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
     tapHaptic();
     soundPick();
     try {
-      const canvas = await renderCanvas();
-      if (!canvas) throw new Error('canvas null');
-      const blob = await canvasToBlob(canvas);
+      const blob = await renderBlob();
       if (!blob) throw new Error('blob null');
 
       const file = new File([blob], buildFilename(), { type: 'image/png' });
@@ -133,12 +134,13 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
     tapHaptic();
     soundTap();
     try {
-      const canvas = await renderCanvas();
-      if (!canvas) throw new Error('canvas null');
+      const blob = await renderBlob();
+      if (!blob) throw new Error('blob null');
       const link = document.createElement('a');
       link.download = buildFilename();
-      link.href = canvas.toDataURL('image/png');
+      link.href = URL.createObjectURL(blob);
       link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
       incrementShared();
       onShared('Imagen descargada');
     } catch (e) {
@@ -148,11 +150,11 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
   }
 
   // Aspect ratio dinámico — evita el "mar de espacio vacío" cuando hay pocos
-  // partidos. Todos los formatos son válidos para Instagram (1080×1350 feed,
-  // 1080×1440 retrato, 1080×1920 stories).
+  // partidos. Todos los formatos son válidos para Instagram (1080×1080 cuadrado,
+  // 1080×1350 feed, 1080×1920 stories).
   const rowCount = matches.length;
-  const aspectRatio = rowCount <= 3 ? '4 / 5'         // 1080×1350 — feed
-                    : rowCount <= 7 ? '3 / 4'         // 1080×1440 — retrato
+  const aspectRatio = rowCount <= 2 ? '1 / 1'         // 1080×1080 — cuadrado
+                    : rowCount <= 6 ? '4 / 5'         // 1080×1350 — feed
                     :                 '9 / 16';       // 1080×1920 — stories
   // Factor de escala interna basado en la cantidad de partidos (sin ir por debajo
   // de mínimos legibles).
