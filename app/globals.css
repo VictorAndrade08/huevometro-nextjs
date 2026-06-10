@@ -141,6 +141,15 @@
 .close-x-pulse { animation: close-x-pulse 2.4s ease-in-out infinite; }
 .close-x-pulse:hover { animation: none; transform: rotate(90deg); }
 
+/* iOS Safari hace auto-zoom cuando un input tiene fuente < 16px.
+   Forzamos 16px mínimo en mobile para evitar el zoom molesto.
+   En md+ los inputs vuelven a ser text-sm si así lo definen las clases. */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Botón principal */
 .btn-bio {
   background: linear-gradient(180deg, #FB9230 0%, #F08925 100%);
