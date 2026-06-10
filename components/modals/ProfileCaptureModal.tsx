@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { User, Instagram, Trophy } from 'lucide-react';
+import { User, Instagram, Trophy, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
@@ -55,10 +55,11 @@ export function ProfileCaptureModal({ open, onClose, onComplete, picksCount }: P
           </div>
           <button
             onClick={() => { tapHaptic(); soundClose(); onClose(); }}
-            className="text-ink/40 hover:text-ink text-2xl leading-none"
             aria-label="Cerrar"
+            className="shrink-0 w-11 h-11 rounded-xl border-2 flex items-center justify-center text-bio-200 hover:text-white hover:bg-red-500 hover:border-red-500 active:scale-90 transition close-x-pulse"
+            style={{ background: 'var(--color-bg-3)', borderColor: 'var(--color-border)' }}
           >
-            ×
+            <X className="size-5" strokeWidth={3} />
           </button>
         </div>
         <p className="text-xs text-bio-200/65 mt-1 leading-relaxed">

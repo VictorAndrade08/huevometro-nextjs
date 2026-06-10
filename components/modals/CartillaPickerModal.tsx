@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Star, Calendar, ChevronRight } from 'lucide-react';
+import { Star, Calendar, ChevronRight, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useGameStore } from '@/store/gameStore';
 import { WEEK_BUCKETS, getWeekFor, formatWeekRange } from '@/lib/weeks';
@@ -88,10 +88,11 @@ export function CartillaPickerModal({ open, onClose, matches, onPick }: Cartilla
           </div>
           <button
             onClick={() => { tapHaptic(); soundClose(); onClose(); }}
-            className="text-ink/40 hover:text-ink text-2xl leading-none"
             aria-label="Cerrar"
+            className="shrink-0 w-11 h-11 rounded-xl border-2 flex items-center justify-center text-bio-200 hover:text-white hover:bg-red-500 hover:border-red-500 active:scale-90 transition close-x-pulse"
+            style={{ background: 'var(--color-bg-3)', borderColor: 'var(--color-border)' }}
           >
-            ×
+            <X className="size-5" strokeWidth={3} />
           </button>
         </div>
         <p className="text-xs text-bio-200/65 mt-1 leading-relaxed">

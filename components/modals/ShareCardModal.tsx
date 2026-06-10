@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { Download, Share2, User, Pencil } from 'lucide-react';
+import { Download, Share2, User, Pencil, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
@@ -64,11 +64,20 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
     return `huevometro-${safeName}-${slug}.png`;
   }
 
+  // Renderiza a EXACTAMENTE 1080×1920 (Instagram Stories) sin importar
+  // el tamaño en el que se vea la preview. Calculamos `scale` a partir
+  // del width real del preview para que el canvas resultante tenga 1080px de ancho.
   async function renderCanvas() {
     const html2canvas = (await import('html2canvas')).default;
     if (!cardRef.current) return null;
+    const previewWidth = cardRef.current.getBoundingClientRect().width;
+    if (!previewWidth) return null;
+    const targetScale = 1080 / previewWidth;
     return html2canvas(cardRef.current, {
-      backgroundColor: null, scale: 2, useCORS: true,
+      backgroundColor: null,
+      scale: targetScale,
+      useCORS: true,
+      logging: false,
     });
   }
 
@@ -138,23 +147,41 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
     }
   }
 
-  // Decide layout density según cantidad de partidos
+  // SIEMPRE Instagram Stories 9:16 (1080×1920 al exportar).
+  // Las medidas internas se calculan para que TODO entre — grid con minmax(0,1fr)
+  // garantiza que las filas se compriman antes de desbordar.
   const rowCount = matches.length;
-  const compact = rowCount > 6;
-  // Aspect ratio dinámico: 4:5 para pocos partidos, más alto (hasta 9:16) cuando hay muchos
-  // 1 partido → 4:5 (1.25)   ·   8 partidos → ~1.65   ·   12+ → 9:16 (1.78)
-  const aspectRatio = rowCount <= 3
-    ? '4 / 5'
-    : rowCount >= 12
-      ? '9 / 16'
-      : `1 / ${(1.25 + (rowCount - 3) * 0.06).toFixed(2)}`;
+  const aspectRatio = '9 / 16';
+  // Factor de escala interna basado en la cantidad de partidos (sin ir por debajo
+  // de mínimos legibles). Calibrado para 1080×1920.
+  const factor      = Math.max(0.55, Math.min(1.25, 1.40 - rowCount * 0.07));
+  const teamFont    = Math.max(9,  Math.round(13 * factor));
+  const scoreFont   = Math.max(15, Math.round(26 * factor));
+  const flagW       = Math.max(20, Math.round(34 * factor));
+  const flagH       = Math.max(15, Math.round(24 * factor));
+  const rowPadV     = Math.max(4,  Math.round(9  * factor));
+  const rowPadH     = Math.max(6,  Math.round(10 * factor));
+  const rowGap      = Math.max(3,  Math.round(7  * factor));
+  const horizPad    = Math.max(10, Math.round(16 * factor));
+  const scorePadH   = Math.max(8,  Math.round(13 * factor));
+  const scorePadV   = Math.max(4,  Math.round(6  * factor));
+  const scoreMinW   = Math.max(40, Math.round(60 * factor));
+  const teamGap     = Math.max(2,  Math.round(4  * factor));
+  const cellGap     = Math.max(4,  Math.round(8  * factor));
 
   return (
     <Modal open={open} onClose={onClose}>
       <div className="p-4">
         <div className="flex justify-between items-center mb-3 px-1">
           <h3 className="font-display text-lg font-bold text-white">Tu cartilla</h3>
-          <button onClick={() => { tapHaptic(); soundClose(); onClose(); }} className="text-ink/40 hover:text-ink text-2xl leading-none">×</button>
+          <button
+            onClick={() => { tapHaptic(); soundClose(); onClose(); }}
+            aria-label="Cerrar"
+            className="shrink-0 w-11 h-11 rounded-xl border-2 flex items-center justify-center text-bio-200 hover:text-white hover:bg-red-500 hover:border-red-500 active:scale-90 transition close-x-pulse"
+            style={{ background: 'var(--color-bg-3)', borderColor: 'var(--color-border)' }}
+          >
+            <X className="size-5" strokeWidth={3} />
+          </button>
         </div>
 
         {/* Firma editable */}
@@ -259,50 +286,48 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
           </div>
 
           {/* Título de la jornada */}
-          <div style={{ textAlign: 'center', padding: '14px 16px 6px' }}>
+          <div style={{ textAlign: 'center', padding: '10px 16px 4px', flexShrink: 0 }}>
             <div style={{
               display: 'inline-block',
               background: '#FFFFFF',
               border: '1.5px solid #FFC684',
               color: '#A85912',
-              padding: '4px 14px',
+              padding: '3px 12px',
               borderRadius: 999,
-              fontSize: 10,
+              fontSize: 9,
               fontFamily: 'var(--font-display)',
               fontWeight: 600,
-              letterSpacing: '0.12em',
+              letterSpacing: '0.14em',
             }}>
               MI CARTILLA
             </div>
             <h2 style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 22,
+              fontSize: title.length > 30 ? 16 : 20,
               fontWeight: 700,
               color: '#2A1F12',
               letterSpacing: '-0.01em',
-              marginTop: 6,
+              margin: '5px 0 0',
               lineHeight: 1.1,
             }}>
               {title}
             </h2>
           </div>
 
-          {/* Lista de partidos */}
+          {/* Lista de partidos — grid de filas iguales que NUNCA se desbordan */}
           <div style={{
             flex: 1,
-            padding: `8px ${compact ? 14 : 18}px`,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: compact ? 5 : 8,
-            justifyContent: matches.length <= 2 ? 'flex-start' : 'center',
+            minHeight: 0,
+            padding: `${rowGap * 2}px ${horizPad}px`,
+            display: 'grid',
+            gridTemplateRows: `repeat(${matches.length}, minmax(0, 1fr))`,
+            gap: rowGap,
+            overflow: 'hidden',
           }}>
             {matches.map(m => {
               const p = predictions[m.id];
               const h = typeof p?.home === 'number' ? p.home : 0;
               const a = typeof p?.away === 'number' ? p.away : 0;
-              const teamFont = compact ? 10 : 12;
-              const flagW    = compact ? 28 : 36;
-              const flagH    = compact ? 20 : 26;
               return (
                 <div
                   key={m.id}
@@ -310,15 +335,17 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                     display: 'grid',
                     gridTemplateColumns: '1fr auto 1fr',
                     alignItems: 'center',
-                    gap: compact ? 6 : 10,
+                    gap: cellGap,
                     background: '#fff',
                     border: '1.5px solid #FFE0B5',
                     borderRadius: 14,
-                    padding: compact ? '10px 8px' : '12px 10px',
+                    padding: `${rowPadV}px ${rowPadH}px`,
+                    minHeight: 0,
+                    overflow: 'hidden',
                   }}
                 >
                   {/* Local — flag arriba, nombre abajo */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: teamGap, minWidth: 0, minHeight: 0 }}>
                     {flagUrl(m.homeFlag, 80) && (
                       <img
                         src={flagUrl(m.homeFlag, 80)}
@@ -335,8 +362,9 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                       textTransform: 'uppercase',
                       letterSpacing: '0.01em',
                       textAlign: 'center',
-                      lineHeight: 1.15,
+                      lineHeight: 1.1,
                       wordBreak: 'break-word',
+                      overflow: 'hidden',
                     }}>
                       {m.homeTeam}
                     </span>
@@ -345,13 +373,13 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                   <div style={{
                     flexShrink: 0,
                     fontFamily: 'var(--font-display)',
-                    fontSize: compact ? 18 : 24,
+                    fontSize: scoreFont,
                     fontWeight: 700,
                     color: '#A85912',
                     background: '#FFF3E2',
                     borderRadius: 12,
-                    padding: '6px 14px',
-                    minWidth: 64,
+                    padding: `${scorePadV}px ${scorePadH}px`,
+                    minWidth: scoreMinW,
                     textAlign: 'center',
                     lineHeight: 1,
                     border: '1.5px solid #FFC684',
@@ -359,7 +387,7 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                     {h}–{a}
                   </div>
                   {/* Visitante — flag arriba, nombre abajo */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: teamGap, minWidth: 0, minHeight: 0 }}>
                     {flagUrl(m.awayFlag, 80) && (
                       <img
                         src={flagUrl(m.awayFlag, 80)}
@@ -376,8 +404,9 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
                       textTransform: 'uppercase',
                       letterSpacing: '0.01em',
                       textAlign: 'center',
-                      lineHeight: 1.15,
+                      lineHeight: 1.1,
                       wordBreak: 'break-word',
+                      overflow: 'hidden',
                     }}>
                       {m.awayTeam}
                     </span>
@@ -390,18 +419,19 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
           {/* Firma */}
           <div style={{
             margin: '0 18px',
-            padding: '10px 0 6px',
+            padding: '8px 0 4px',
             borderTop: '1.5px dashed #FFC684',
             textAlign: 'center',
+            flexShrink: 0,
           }}>
-            <div style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, color: '#A85912', letterSpacing: '0.14em', marginBottom: 2 }}>
+            <div style={{ fontSize: 8, fontFamily: 'var(--font-display)', fontWeight: 600, color: '#A85912', letterSpacing: '0.16em', marginBottom: 1 }}>
               FIRMADO POR
             </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: '#2A1F12', lineHeight: 1.1 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700, color: '#2A1F12', lineHeight: 1.1 }}>
               {(userProfile.name || 'Tu nombre').toUpperCase()}
             </div>
             {userProfile.ig && (
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#A85912', marginTop: 2 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#A85912', marginTop: 1 }}>
                 @{userProfile.ig.replace(/^@/, '')}
               </div>
             )}
@@ -411,7 +441,7 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
           <div style={{
             background: '#2A1F12',
             color: '#fff',
-            padding: '10px 20px',
+            padding: '8px 20px',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'baseline',
@@ -419,7 +449,8 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
             fontFamily: 'var(--font-display)',
             fontWeight: 600,
             letterSpacing: '0.08em',
-            fontSize: 11,
+            fontSize: 10,
+            flexShrink: 0,
           }}>
             <span>ETIQUETÁ</span>
             <span style={{ color: '#FFB458' }}>@biohuevos_ec</span>
@@ -429,16 +460,16 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
 
         {/* Acciones */}
         <div className="mt-4 space-y-2">
-          <Button onClick={handleNativeShare} size="lg" block>
-            <Share2 className="size-5" /> Compartir cartilla
+          <Button onClick={handleDownload} size="lg" block>
+            <Download className="size-5" /> Descargar imagen
           </Button>
           <button
             type="button"
-            onClick={handleDownload}
+            onClick={handleNativeShare}
             className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl border-2 text-bio-200 hover:text-white hover:border-bio-400 transition font-display font-semibold text-sm"
             style={{ background: 'var(--color-bg-3)', borderColor: 'var(--color-border)' }}
           >
-            <Download className="size-4" /> Solo descargar imagen
+            <Share2 className="size-4" /> Compartir cartilla
           </button>
           <p className="text-xs text-bio-200/65 text-center mt-2 leading-relaxed">
             Subila a tu historia y etiquetá <strong className="text-bio-300">@biohuevos_ec</strong> para participar.

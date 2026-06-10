@@ -133,6 +133,14 @@
 }
 .share-cta-glow { animation: share-cta-glow 1.8s ease-in-out infinite; }
 
+/* Botón × de cerrar — pulso sutil para que se note */
+@keyframes close-x-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.0); transform: rotate(0deg); }
+  50%      { box-shadow: 0 0 0 4px rgba(239,68,68,0.15); transform: rotate(0deg); }
+}
+.close-x-pulse { animation: close-x-pulse 2.4s ease-in-out infinite; }
+.close-x-pulse:hover { animation: none; transform: rotate(90deg); }
+
 /* Botón principal */
 .btn-bio {
   background: linear-gradient(180deg, #FB9230 0%, #F08925 100%);
