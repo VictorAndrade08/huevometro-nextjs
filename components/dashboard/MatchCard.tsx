@@ -179,9 +179,9 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
             disabled={!hasPrediction || locked}
             onClick={() => onShare(match)}
             className={cn(
-              'inline-flex items-center justify-center gap-1.5 h-9 rounded-xl font-display font-semibold text-xs transition border',
+              'inline-flex items-center justify-center gap-2 h-12 rounded-2xl font-display font-bold text-base transition border-2',
               hasPrediction && !locked
-                ? 'bg-gradient-to-br from-bio-400 to-bio-600 text-white border-bio-700 shadow-md shadow-bio-900/40 hover:brightness-110 active:scale-[0.98]'
+                ? 'bg-gradient-to-br from-bio-400 to-bio-600 text-white border-bio-700 hover:brightness-110 active:scale-[0.98] share-cta-glow'
                 : 'cursor-not-allowed',
             )}
             style={
@@ -190,11 +190,11 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
                 : {
                     background: 'var(--color-bg-3)',
                     borderColor: 'var(--color-border)',
-                    color: 'rgba(255,224,181,0.40)',
+                    color: 'rgba(255,224,181,0.45)',
                   }
             }
           >
-            <Share2 className="size-3.5" strokeWidth={2.5} />
+            <Share2 className="size-5" strokeWidth={3} />
             Compartir este partido
           </button>
         )}

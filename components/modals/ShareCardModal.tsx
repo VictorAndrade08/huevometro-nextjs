@@ -131,6 +131,13 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
   // Decide layout density según cantidad de partidos
   const rowCount = matches.length;
   const compact = rowCount > 6;
+  // Aspect ratio dinámico: 4:5 para pocos partidos, más alto (hasta 9:16) cuando hay muchos
+  // 1 partido → 4:5 (1.25)   ·   8 partidos → ~1.65   ·   12+ → 9:16 (1.78)
+  const aspectRatio = rowCount <= 3
+    ? '4 / 5'
+    : rowCount >= 12
+      ? '9 / 16'
+      : `1 / ${(1.25 + (rowCount - 3) * 0.06).toFixed(2)}`;
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -212,7 +219,7 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
           ref={cardRef}
           style={{
             width: '100%',
-            aspectRatio: '4 / 5',
+            aspectRatio,
             background: '#FBF7EE',
             borderRadius: 20,
             position: 'relative',

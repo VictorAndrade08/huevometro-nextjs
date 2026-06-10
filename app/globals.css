@@ -126,6 +126,13 @@
 }
 .pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 
+/* CTA "Compartir este partido" — pulso que invita a tocar */
+@keyframes share-cta-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,184,88,0.55), 0 8px 20px rgba(240,137,37,0.40); }
+  50%      { box-shadow: 0 0 0 10px rgba(255,184,88,0),  0 12px 28px rgba(240,137,37,0.60); }
+}
+.share-cta-glow { animation: share-cta-glow 1.8s ease-in-out infinite; }
+
 /* Botón principal */
 .btn-bio {
   background: linear-gradient(180deg, #FB9230 0%, #F08925 100%);
