@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import { Lock, Clock, Check, AlertTriangle, Minus, Plus, X, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatMatchDate, isClosingSoon, isLocked, timeUntilKickoff } from '@/lib/scoring';
+import { tapHaptic } from '@/lib/haptic';
+import { soundTap, soundPick, soundClear } from '@/lib/sounds';
 import { useGameStore } from '@/store/gameStore';
 import { useNow } from '@/hooks/useNow';
 import { Flag } from '@/components/ui/Flag';
@@ -59,8 +61,31 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
 
   const flagSize = dense ? 16 : 22;
 
+  function handleChange(team: 'home' | 'away', delta: 1 | -1) {
+    tapHaptic();
+    soundTap();
+    changePrediction(match.id, team, delta);
+  }
+
+  function handleQuickPick(h: number, a: number) {
+    tapHaptic();
+    soundPick();
+    applyQuickPick(match.id, h, a);
+  }
+
+  function handleClear() {
+    tapHaptic();
+    soundClear();
+    clearPrediction(match.id);
+  }
+
   return (
-    <div className={cardClasses} data-match-id={match.id} style={cardStyle}>
+    <div
+      className={cardClasses}
+      data-match-id={match.id}
+      data-pending={!hasPrediction && !locked ? 'true' : 'false'}
+      style={cardStyle}
+    >
       {/* Meta row */}
       <div className={metaClasses} style={metaStyle}>
         <span className="flex items-center gap-1.5 min-w-0 truncate">
@@ -105,8 +130,8 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
             hasPrediction={hasPrediction}
             disabled={locked}
             dense={dense}
-            onPlus ={() => changePrediction(match.id, 'home', +1)}
-            onMinus={() => changePrediction(match.id, 'home', -1)}
+            onPlus ={() => handleChange('home', +1)}
+            onMinus={() => handleChange('home', -1)}
             label={match.homeTeam}
           />
         </div>
@@ -124,8 +149,8 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
             hasPrediction={hasPrediction}
             disabled={locked}
             dense={dense}
-            onPlus ={() => changePrediction(match.id, 'away', +1)}
-            onMinus={() => changePrediction(match.id, 'away', -1)}
+            onPlus ={() => handleChange('away', +1)}
+            onMinus={() => handleChange('away', -1)}
             label={match.awayTeam}
           />
         </div>
@@ -152,22 +177,22 @@ export function MatchCard({ match, dense = false, onShare }: MatchCardProps) {
               matchId={match.id}
               disabled={locked}
               dense={dense}
-              onPick={(h, a) => applyQuickPick(match.id, h, a)}
+              onPick={handleQuickPick}
             />
           </div>
           {hasPrediction && !locked && (
             <button
               type="button"
-              onClick={() => clearPrediction(match.id)}
+              onClick={handleClear}
               title="Borrar marcador"
               aria-label="Borrar marcador"
-              className="shrink-0 w-8 h-8 rounded-lg border text-bio-200/60 hover:text-red-400 hover:border-red-400/40 transition flex items-center justify-center"
+              className="shrink-0 w-12 h-12 rounded-xl border-2 text-bio-200/70 hover:text-red-400 hover:border-red-400/40 transition flex items-center justify-center"
               style={{
                 background: 'var(--color-bg-3)',
                 borderColor: 'var(--color-border)',
               }}
             >
-              <X className="size-3.5" strokeWidth={2.5} />
+              <X className="size-5" strokeWidth={2.5} />
             </button>
           )}
         </div>
@@ -216,11 +241,12 @@ interface TeamCounterProps {
 function TeamCounter({ value, hasPrediction, onPlus, onMinus, disabled, dense, label }: TeamCounterProps) {
   const btn = cn(
     'rounded-full border-2 font-display font-semibold flex items-center justify-center transition active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shadow-md shadow-bio-900/30',
-    'border-bio-400/50 text-bio-300 hover:bg-bio-500 hover:text-white hover:border-bio-500',
-    dense ? 'size-9' : 'size-11',
+    'border-bio-400/60 text-bio-200 hover:bg-bio-500 hover:text-white hover:border-bio-500',
+    // Touch targets ≥ 48px (Apple HIG / Material 48dp)
+    dense ? 'size-12' : 'size-14',
   );
   return (
-    <div className={cn('flex items-center shrink-0', dense ? 'gap-1.5' : 'gap-2')}>
+    <div className={cn('flex items-center shrink-0', dense ? 'gap-2' : 'gap-2.5')}>
       <button
         type="button"
         className={btn}
@@ -228,13 +254,13 @@ function TeamCounter({ value, hasPrediction, onPlus, onMinus, disabled, dense, l
         disabled={disabled}
         aria-label={`Restar gol ${label}`}
       >
-        <Minus className={dense ? 'size-4' : 'size-5'} strokeWidth={3} />
+        <Minus className={dense ? 'size-5' : 'size-6'} strokeWidth={3} />
       </button>
       <span
         className={cn(
           'font-display font-bold tabular-nums leading-none text-center',
-          dense ? 'min-w-6 text-xl' : 'min-w-7 text-2xl',
-          hasPrediction ? 'text-bio-200' : 'text-bio-200/35',
+          dense ? 'min-w-7 text-2xl' : 'min-w-8 text-3xl',
+          hasPrediction ? 'text-bio-100' : 'text-bio-200/35',
         )}
         aria-live="polite"
       >
@@ -247,7 +273,7 @@ function TeamCounter({ value, hasPrediction, onPlus, onMinus, disabled, dense, l
         disabled={disabled}
         aria-label={`Sumar gol ${label}`}
       >
-        <Plus className={dense ? 'size-4' : 'size-5'} strokeWidth={3} />
+        <Plus className={dense ? 'size-5' : 'size-6'} strokeWidth={3} />
       </button>
       <EggGoals count={value} dense={dense} dim={!hasPrediction} align="start" />
     </div>

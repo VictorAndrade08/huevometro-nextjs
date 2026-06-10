@@ -113,7 +113,7 @@ export function WeekAccordion({ bucket, matches, doneCount, onShareMatch, onShar
                 className={cn(
                   'w-full inline-flex items-center justify-center gap-2.5 h-14 rounded-2xl font-display font-bold text-lg transition border-2',
                   allDone
-                    ? 'bg-gradient-to-br from-bio-400 to-bio-600 text-white border-bio-700 shadow-lg shadow-bio-900/40 hover:shadow-xl active:scale-[0.98]'
+                    ? 'bg-gradient-to-br from-bio-400 to-bio-600 text-white border-bio-700 hover:brightness-110 active:scale-[0.98] share-cta-glow'
                     : 'cursor-not-allowed',
                 )}
                 style={
