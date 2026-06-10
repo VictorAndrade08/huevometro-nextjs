@@ -8,6 +8,7 @@ import { FilterTabs }         from '@/components/dashboard/FilterTabs';
 import { MatchesList }        from '@/components/dashboard/MatchesList';
 import { InfoDrawer }         from '@/components/dashboard/InfoDrawer';
 import { SaveButton }         from '@/components/dashboard/SaveButton';
+import { MusicPlayer }        from '@/components/dashboard/MusicPlayer';
 import { Toast }              from '@/components/ui/Toast';
 import { RulesModal }         from '@/components/modals/RulesModal';
 import { OnboardingModal }    from '@/components/modals/OnboardingModal';
@@ -194,6 +195,8 @@ export default function DashboardPage() {
       </main>
 
       <SaveButton onSave={handleSave} onOpenRules={() => setRulesOpen(true)} />
+
+      <MusicPlayer />
 
       <Toast message={toast.message} type={toast.type} visible={toast.visible} />
 

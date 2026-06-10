@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { soundClose } from '@/lib/sounds';
+import { tapHaptic } from '@/lib/haptic';
 
 interface ModalProps {
   open:     boolean;
@@ -12,23 +14,29 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, children, className }: ModalProps) {
+  const close = React.useCallback(() => {
+    tapHaptic();
+    soundClose();
+    onClose();
+  }, [onClose]);
+
   React.useEffect(() => {
     if (!open) return;
-    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onEsc);
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onEsc);
       document.body.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [open, close]);
 
   if (!open) return null;
 
   return (
     <div
       className="modal-overlay show"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) close(); }}
       role="dialog"
       aria-modal="true"
     >

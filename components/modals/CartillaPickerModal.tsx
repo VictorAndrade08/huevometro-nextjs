@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useGameStore } from '@/store/gameStore';
 import { WEEK_BUCKETS, getWeekFor, formatWeekRange } from '@/lib/weeks';
 import { tapHaptic } from '@/lib/haptic';
-import { soundPick } from '@/lib/sounds';
+import { soundClose, soundPick } from '@/lib/sounds';
 import type { Match } from '@/types';
 
 interface CartillaOption {
@@ -87,7 +87,7 @@ export function CartillaPickerModal({ open, onClose, matches, onPick }: Cartilla
             <h2 className="font-display text-2xl font-bold text-white leading-tight mt-0.5">¿Qué cartilla querés exportar?</h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => { tapHaptic(); soundClose(); onClose(); }}
             className="text-ink/40 hover:text-ink text-2xl leading-none"
             aria-label="Cerrar"
           >

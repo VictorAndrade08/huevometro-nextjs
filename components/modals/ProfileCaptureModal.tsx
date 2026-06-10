@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
 import { tapHaptic } from '@/lib/haptic';
-import { soundPick } from '@/lib/sounds';
+import { soundClose, soundPick } from '@/lib/sounds';
 
 interface ProfileCaptureModalProps {
   open:        boolean;
@@ -54,7 +54,7 @@ export function ProfileCaptureModal({ open, onClose, onComplete, picksCount }: P
             <h2 className="font-display text-2xl font-bold text-white leading-tight mt-0.5">Tus datos</h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => { tapHaptic(); soundClose(); onClose(); }}
             className="text-ink/40 hover:text-ink text-2xl leading-none"
             aria-label="Cerrar"
           >

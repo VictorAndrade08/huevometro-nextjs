@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
 import { flagUrl } from '@/lib/teams';
-import { soundCelebrate, soundPick, soundTap } from '@/lib/sounds';
+import { soundCelebrate, soundClose, soundPick, soundTap } from '@/lib/sounds';
 import { tapHaptic } from '@/lib/haptic';
 import type { Match } from '@/types';
 
@@ -154,7 +154,7 @@ export function ShareCardModal({ open, onClose, matches, title, onShared }: Shar
       <div className="p-4">
         <div className="flex justify-between items-center mb-3 px-1">
           <h3 className="font-display text-lg font-bold text-white">Tu cartilla</h3>
-          <button onClick={onClose} className="text-ink/40 hover:text-ink text-2xl leading-none">×</button>
+          <button onClick={() => { tapHaptic(); soundClose(); onClose(); }} className="text-ink/40 hover:text-ink text-2xl leading-none">×</button>
         </div>
 
         {/* Firma editable */}

@@ -91,3 +91,8 @@ export function soundCelebrate(): void {
 export function soundToggle(): void {
   blip({ freq: 420, duration: 0.08, type: 'sine', volume: 0.12, sweep: 560 });
 }
+
+/** Cierre de modal — swoosh descendente corto. */
+export function soundClose(): void {
+  blip({ freq: 620, duration: 0.09, type: 'sine', volume: 0.12, sweep: 320 });
+}
