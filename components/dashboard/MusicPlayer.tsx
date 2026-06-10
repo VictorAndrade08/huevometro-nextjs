@@ -6,6 +6,9 @@ import { cn } from '@/lib/utils';
 import { tapHaptic } from '@/lib/haptic';
 import { soundTap, soundToggle } from '@/lib/sounds';
 
+// Flip a `true` cuando los MP3 estén en /public/music/
+const PLAYER_ENABLED = false;
+
 interface Track {
   title:  string;
   artist: string;
@@ -126,6 +129,38 @@ export function MusicPlayer() {
   }, [trackIdx, playing]);
 
   if (!mounted || !track) return null;
+
+  // Modo "Próximamente" — pill deshabilitada, sin panel, sin audio
+  if (!PLAYER_ENABLED) {
+    return (
+      <div
+        className="hidden md:flex fixed bottom-6 left-6 z-40 flex-col items-stretch"
+        style={{ maxWidth: 320 }}
+      >
+        <div
+          className="relative self-start inline-flex items-center gap-2.5 h-12 px-4 rounded-full shadow-xl border-2 font-display font-bold text-sm text-bio-200/55 cursor-not-allowed select-none"
+          style={{
+            background: 'rgba(10, 26, 18, 0.85)',
+            borderColor: 'rgba(240,137,37,0.30)',
+          }}
+          aria-label="Reproductor de música próximamente"
+        >
+          <Music className="size-4 opacity-60" strokeWidth={2.5} />
+          <span>Huevo FM</span>
+          <span
+            className="ml-1 inline-flex items-center h-6 px-2 rounded-full text-[10px] font-display font-bold uppercase tracking-widest"
+            style={{
+              background: 'rgba(240,137,37,0.18)',
+              color: '#FFB458',
+              border: '1px solid rgba(240,137,37,0.35)',
+            }}
+          >
+            Próximamente
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
